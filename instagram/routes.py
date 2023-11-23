@@ -40,7 +40,7 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=1)
 # Função para gerar a matriz de confusão como uma imagem base64
 def plot_confusion_matrix(cm):
     fig, ax = plt.subplots()
-    im = ax.imshow(cm, interpolation='nearest', cmap=plt.cm.Blues)
+    im = ax.imshow(cm, interpolation='nearest', cmap=plt.cm.Greens)
     plt.colorbar(im)
     plt.xlabel('Predicted')
     plt.ylabel('True')

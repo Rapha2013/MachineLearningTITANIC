@@ -10,8 +10,8 @@
     <div class="row">
         <div class="col-md-6">
             <div class="classifier-info bg-white p-4 rounded">
-                <label for="classifierSelect">Selecione um classificador:</label>
                 <select id="classifierSelect" class="form-control mb-3">
+                    <option value="none">Selecione um classificador</option>
                     <option value="knn">KNN</option>
                     <option value="svm">SVM</option>
                     <option value="mlp">MLP</option>
@@ -21,12 +21,14 @@
 
                 <h2>Parâmetros Importantes</h2>
                 <ul id="parametersList" class="list-group">
-                    <!-- Os parâmetros serão adicionados dinamicamente com JavaScript -->
                 </ul>
+
+                <div id="parameterValues" class="mb-3">
+                </div>
             </div>
         </div>
 
-        <div class="col-md-6">
+        <div class="col-md-6" id="cardMM">
             <div class="result-metrics bg-white p-4 rounded">
                 <h2>Métricas</h2>
                 <p><b>Acurácia:</b> <span id="accuracy">-</span></p>
@@ -43,9 +45,15 @@
 <script>
     const classifierSelect = document.querySelector("#classifierSelect");
     const parametersList = document.querySelector("#parametersList");
+    const parameterValues = document.getElementById("parameterValues");
     const accuracy = document.querySelector("#accuracy");
     const macroF1 = document.querySelector("#macroF1");
     const confusionMatrix = document.querySelector("#confusionMatrix");
+
+    const cardMM = document.querySelector("#cardMM");
+
+    cardMM.style.display = "none";
+
 
     // Função para buscar os dados da API quando o seletor for alterado
     const getMatriz = () => {
@@ -57,17 +65,73 @@
                 confusionMatrix.src = `data:image/png;base64,${res.data.matriz}`;
                 accuracy.textContent = res.data.accuracy;
                 macroF1.textContent = res.data.f1_score;
+
+                cardMM.style.display = "block";
             })
             .catch((error) => {
                 console.error(error);
             });
     }
 
-    // Adiciona um ouvinte de eventos de mudança ao seletor
-    classifierSelect.addEventListener("change", getMatriz);
-
     // Chama getMatriz() quando a página carrega para exibir a matriz de confusão inicial
-    getMatriz();
+    const getSelect = () => {
+        // Limpa a lista de parâmetros e valores
+        parametersList.innerHTML = "";
+        parameterValues.innerHTML = "";
+
+        // Verifica o classificador selecionado
+        if (classifierSelect.value === "knn") {
+            // Adiciona os parâmetros do KNN à lista
+            addParameterToList("n_neighbors", "Número de Vizinhos", ["3", "5", "7"]);
+            addParameterToList("weights", "Pesos", ["uniform", "distance"]);
+            addParameterToList("p", "P", ["1", "2"]);
+        } else if (classifierSelect.value === "svm") {
+            // Adiciona os parâmetros do SVM à lista
+            addParameterToList("C", "C", ["0.1", "1.0", "10.0"]);
+            addParameterToList("kernel", "Kernel", ["linear", "rbf"]);
+        } else if (classifierSelect.value === "mlp") {
+            // Adiciona os parâmetros do MLP à lista
+            addParameterToList("hidden_layer_sizes", "Neurônios nas camadas ocultas", ["(50,)", "(100, 50)", "(50, 30, 20)"]);
+            addParameterToList("max_iter", "Número máximo de iterações", ["500", "1000", "2000"]);
+        } else if (classifierSelect.value === "dt") {
+            // Adiciona os parâmetros da Decision Tree à lista
+            addParameterToList("max_depth", "Profundidade máxima da árvore", ["3", "5", "10"]);
+        } else if (classifierSelect.value === "rf") {
+            // Adiciona os parâmetros do Random Forest à lista
+            addParameterToList("n_estimators", "Número de árvores na floresta", ["50", "100", "200"]);
+            addParameterToList("max_depth", "Profundidade máxima de cada árvore", ["5", "10", "15"]);
+        }
+
+        function addParameterToList(name, label, values) {
+            var listItem = document.createElement("li");
+            listItem.className = "list-group-item";
+            listItem.appendChild(document.createTextNode(name + " = " + label));
+
+            // Adiciona o select com os valores dos parâmetros
+            var select = document.createElement("select");
+            select.id = name + "Select";
+            select.className = "form-control";
+            for (var i = 0; i < values.length; i++) {
+                var option = document.createElement("option");
+                option.value = values[i];
+                option.text = values[i];
+                select.appendChild(option);
+            }
+
+            listItem.appendChild(select);
+            parametersList.appendChild(listItem);
+        }
+
+        if (classifierSelect.value == "none") {
+            return cardMM.style.display = "none";
+        }
+
+        getMatriz();
+    };
+
+    // Adiciona um ouvinte de eventos de mudança ao seletor
+    classifierSelect.addEventListener("change", getSelect);
+
 
 </script>
 
