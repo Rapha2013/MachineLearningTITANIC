@@ -1,0 +1,74 @@
+{% extends "layout.html" %}
+
+{% block content %}
+
+<header class="bg-dark text-white text-center p-4">
+    <h1>Machine Learning (TITANIC)</h1>
+</header>
+
+<main class="container mt-4">
+    <div class="row">
+        <div class="col-md-6">
+            <div class="classifier-info bg-white p-4 rounded">
+                <label for="classifierSelect">Selecione um classificador:</label>
+                <select id="classifierSelect" class="form-control mb-3">
+                    <option value="knn">KNN</option>
+                    <option value="svm">SVM</option>
+                    <option value="mlp">MLP</option>
+                    <option value="dt">Decision Tree</option>
+                    <option value="rf">Random Forest</option>
+                </select>
+
+                <h2>Parâmetros Importantes</h2>
+                <ul id="parametersList" class="list-group">
+                    <!-- Os parâmetros serão adicionados dinamicamente com JavaScript -->
+                </ul>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="result-metrics bg-white p-4 rounded">
+                <h2>Métricas</h2>
+                <p><b>Acurácia:</b> <span id="accuracy">-</span></p>
+                <p><b>F1-Score:</b> <span id="macroF1">-</span></p>
+
+                <h2>Matriz de Confusão</h2>
+                <img id="confusionMatrix" src="#" alt="Matriz de Confusão" class="img-fluid">
+            </div>
+        </div>
+    </div>
+</main>
+
+
+<script>
+    const classifierSelect = document.querySelector("#classifierSelect");
+    const parametersList = document.querySelector("#parametersList");
+    const accuracy = document.querySelector("#accuracy");
+    const macroF1 = document.querySelector("#macroF1");
+    const confusionMatrix = document.querySelector("#confusionMatrix");
+
+    // Função para buscar os dados da API quando o seletor for alterado
+    const getMatriz = () => {
+        const selectedClassifier = classifierSelect.value;
+
+        // Certifique-se de ajustar a URL da solicitação conforme necessário
+        axios.post("http://127.0.0.1:5000/machine", { type: selectedClassifier })
+            .then((res) => {
+                confusionMatrix.src = `data:image/png;base64,${res.data.matriz}`;
+                accuracy.textContent = res.data.accuracy;
+                macroF1.textContent = res.data.f1_score;
+            })
+            .catch((error) => {
+                console.error(error);
+            });
+    }
+
+    // Adiciona um ouvinte de eventos de mudança ao seletor
+    classifierSelect.addEventListener("change", getMatriz);
+
+    // Chama getMatriz() quando a página carrega para exibir a matriz de confusão inicial
+    getMatriz();
+
+</script>
+
+{% endblock %}
