@@ -26,6 +26,7 @@
                 <div id="parameterValues" class="mb-3">
                 </div>
             </div>
+            <button id="obterParametrosButton" class="btn btn-primary">Obter Parâmetros</button>
         </div>
 
         <div class="col-md-6" id="cardMM">
@@ -49,7 +50,6 @@
     const accuracy = document.querySelector("#accuracy");
     const macroF1 = document.querySelector("#macroF1");
     const confusionMatrix = document.querySelector("#confusionMatrix");
-
     const cardMM = document.querySelector("#cardMM");
 
     cardMM.style.display = "none";
@@ -65,7 +65,6 @@
                 confusionMatrix.src = `data:image/png;base64,${res.data.matriz}`;
                 accuracy.textContent = res.data.accuracy;
                 macroF1.textContent = res.data.f1_score;
-
                 cardMM.style.display = "block";
             })
             .catch((error) => {
@@ -105,11 +104,13 @@
         function addParameterToList(name, label, values) {
             var listItem = document.createElement("li");
             listItem.className = "list-group-item";
-            listItem.appendChild(document.createTextNode(name + " = " + label));
+
+            // Adiciona o rótulo do parâmetro à lista
+            listItem.appendChild(document.createTextNode(name + " = "));
 
             // Adiciona o select com os valores dos parâmetros
             var select = document.createElement("select");
-            select.id = name + "Select";
+            select.id = name;
             select.className = "form-control";
             for (var i = 0; i < values.length; i++) {
                 var option = document.createElement("option");
@@ -126,12 +127,54 @@
             return cardMM.style.display = "none";
         }
 
-        getMatriz();
+        // getMatriz();
     };
 
     // Adiciona um ouvinte de eventos de mudança ao seletor
     classifierSelect.addEventListener("change", getSelect);
 
+    var obterParametrosButton = document.getElementById("obterParametrosButton");
+    obterParametrosButton.addEventListener("click", function () {
+        var selectedClassifier = classifierSelect.value;
+        var parametrosSelecionados = getAllSelectedParameters();
+
+        // Certifique-se de ajustar a URL da solicitação conforme necessário
+        axios.post("http://127.0.0.1:5000/machine", {
+            type: selectedClassifier,
+            parameters: parametrosSelecionados
+        })
+            .then((res) => {
+                confusionMatrix.src = `data:image/png;base64,${res.data.matriz}`;
+                accuracy.textContent = res.data.accuracy;
+                macroF1.textContent = res.data.f1_score;
+
+                cardMM.style.display = "block";
+            })
+            .catch((error) => {
+                console.error(error);
+            });
+    });
+
+
+    // Função para obter todos os parâmetros selecionados com nome e valor
+    function getAllSelectedParameters() {
+        var allSelectedParameters = {};
+
+        // Itera sobre os itens da lista de parâmetros
+        var parameterItems = parametersList.getElementsByTagName("li");
+        for (var i = 0; i < parameterItems.length; i++) {
+            var parameterItem = parameterItems[i];
+
+            // Obtém o valor selecionado no select
+            var select = parameterItem.getElementsByTagName("select")[0];
+            var selectedValue = select.options[select.selectedIndex].value;
+
+            // Adiciona o parâmetro e seu valor ao objeto usando o ID como chave
+            allSelectedParameters[select.getAttribute("id")] = selectedValue;
+        }
+
+        return allSelectedParameters;
+    }
 
 </script>
 
